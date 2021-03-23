@@ -7,15 +7,11 @@ import torch
 import torch.nn as nn
 import math
 
-class Config(dict):
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-    
-args = Config({'d_model':128, 'max_len':128, 'n_head':8, 'd_k':128//8,'seq_len':32})
 
 ### embeddings ###
 class positional_encoding(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
+        super().__init__()
         pos = torch.arange(0,args.max_len).unsqueeze(1) # max_len, 1
         div = (10000**(torch.arange(0,args.d_model)/args.d_model)).unsqueeze(0) # 1, d_model
         self.pe = pos/div
@@ -24,13 +20,15 @@ class positional_encoding(nn.Module):
         self.dropout = nn.Dropout(args.dropout)
     def forward(self, input):
         # input : (bs, seq_len, d_model) -> (bs, seq_len, d_model)
-        output = input + self.pe[:args.seq_len,:].unsqueeze(0)        
+        seq_len = input.size(1)
+        output = input + self.pe[:seq_len,:].unsqueeze(0)        
         return self.dropout(output) # (max_len, d_model)        
 
 class segment_embedding(nn.Module):
     # 0 
     # 1(first), 2(second)
-    def __init__(self):
+    def __init__(self,args):
+        super().__init__()
         self.segment_embedding = nn.Embedding(3,args.d_model,padding_idx=0)
     def forward(self,segment_input):
         # input : (bs, seq_len) - [1,1,1,1,1,1,2,2,2,2,2] 이런 식 -> (bs, seq_len, d_model)
@@ -38,12 +36,14 @@ class segment_embedding(nn.Module):
         return output
     
 class token_embedding(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
+        super().__init__()
         self.token_embedding = nn.Embedding(args.n_vocab, args.d_model, padding_idx = args.padding_idx)
     def forward(self,input):
         # input : (bs, seq_len) -> (bs, seq_len, d_model)
         output = self.token_embedding(input) 
         return output
+
 
 def gelu(x):
     '''
@@ -56,8 +56,9 @@ def gelu(x):
 # scaling and shifting - 이 것이 parameter임
 
 class layer_norm(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
         super().__init__()
+        
         self.gamma = nn.Parameter(torch.ones(1,args.seq_len,args.d_model)) # 1로 두는 까닭은 batch 마다 다를 필요가 없다.
         self.beta = nn.Parameter(torch.zeros(1,args.seq_len,args.d_model))
         self.eps = 1e-8
@@ -70,8 +71,9 @@ class layer_norm(nn.Module):
         return output
 
 class multi_head_attention(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
         super().__init__()
+        self.args = args
         self.linear_Q = nn.Linear(args.d_model,args.d_model)
         self.linear_K = nn.Linear(args.d_model,args.d_model)
         self.linear_V = nn.Linear(args.d_model,args.d_model)
@@ -79,21 +81,22 @@ class multi_head_attention(nn.Module):
     def forward(self,input):
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
         Q = self.linear_Q(input) 
-        Q = Q.reshape(-1,args.seq_len,args.n_head,args.d_k).transpose(1,2) # bs,h,seq_len,d_k
+        Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2) # bs,h,seq_len,d_k
         K = self.linear_K(input) 
-        K = K.reshape(-1,args.seq_len,args.n_head,args.d_k).transpose(1,2)
+        K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2)
         V = self.linear_V(input) 
-        V = V.reshape(-1,args.seq_len,args.n_head,args.d_k).transpose(1,2)
+        V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2)
         
-        softmax = nn.Softmax(3).forward(torch.matmul(Q,K.transpose(2,3))/math.sqrt(args.d_k))
+        softmax = nn.Softmax(3).forward(torch.matmul(Q,K.transpose(2,3))/math.sqrt(self.args.d_k))
         output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
         output = output.transpose(1,2)
-        output = output.reshape(-1,args.seq_len,args.n_head*args.d_k) # bs, seq_len, d_model
+        output = output.reshape(-1,self.args.seq_len,self.args.n_head*self.args.d_k) # bs, seq_len, d_model
         return output
 
 class feed_forward_network(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
         super().__init__()
+        
         self.f1 = nn.Linear(args.d_model,args.d_ff)
         self.f2 = nn.Linear(args.d_ff,args.d_model)
         self.dropout = nn.Dropout(args.dropout)
@@ -105,9 +108,9 @@ class feed_forward_network(nn.Module):
     
 class layer_connection(nn.Module):
     # input + dropout(layernorm(sublayer(input)))
-    def __init__(self):
+    def __init__(self,args):
         super().__init__()
-        self.layer_norm = layer_norm()
+        self.layer_norm = layer_norm(args)
         self.dropout=nn.Dropout(args.dropout)
     def forward(self,input,sublayer):
         # input (bs, seq_len, d_model)
@@ -117,49 +120,81 @@ class layer_connection(nn.Module):
         return output
 
 class Transformer_Encoder_Layer(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
         super().__init__()
-        self.layer_connection1 = layer_connection()
-        self.mha = multi_head_attention()
-        self.layer_connection2 = layer_connection()
-        self.ffn = feed_forward_network()
+        
+        self.layer_connection1 = layer_connection(args)
+        self.mha = multi_head_attention(args)
+        self.layer_connection2 = layer_connection(args)
+        self.ffn = feed_forward_network(args)
     def forward(self,input):
         # multi head attention
         # feed forward network
         output1 = self.layer_connection1(input,self.mha)
         output2 = self.layer_connection2(output1,self.ffn)
         return output2
-args['dropout']=0.1
-args['d_ff']=2048
-args['n_layers']=12
-t = Transformer_Encoder_Layer()
-output = t.forward(torch.randn((32,args.seq_len,args.d_model)))
-encoder = nn.ModuleList([Transformer_Encoder_Layer() for _ in range(args.n_layers)])
-o=encoder.forward()
 
 class BERT(nn.Module):
-    def __init__(self):
+    def __init__(self,args):
+        
         super().__init__()
-        self.TE = token_embedding()
-        self.SE = segment_embedding()
-        self.PE = positional_encoding()
-        self.encoder = nn.ModuleList([Transformer_Encoder_Layer() for _ in range(args.n_layers)])
-        self.linear = nn.Linear(args.d_model, args.n_vocab)
-    def forward(self, input_ids, segment_ids, masks):
+        self.args = args
+        self.TE = token_embedding(args)
+        self.SE = segment_embedding(args)
+        self.PE = positional_encoding(args)
+        self.encoder = nn.ModuleList([Transformer_Encoder_Layer(args) for _ in range(args.n_layers)])
+        
+    def forward(self, input_ids, segment_ids):
         # input ids (bs, seq_len) <- tokens
         # segment_ids (bs,seq_len) <- segments
         # masks (bs, seq_len) <- mask된 부분
         
         # embedding
-        te = self.TE(input)
+        te = self.TE(input_ids)
+        
         se = self.SE(segment_ids)
         e = te+se
         output = self.PE(e)
         # encoder
-        for i in range(args.n_layers):
-            output = encoder[i](output)
+        for i in range(self.args.n_layers):
+            output = self.encoder[i](output)
+        return output # (bs,seq_len,d_model)
+ 
+
+
+
+class MLM(nn.Module): # MASK 위치에 해당하는 벡터가 들어오면 예측
+    def __init__(self,args):
+        super().__init__()
+        
+        self.linear = nn.Linear(args.d_model,args.n_vocab)
+    def forward(self,input):
+        # input : (bs, seq_len, d_model)
+        output = self.linear(input)
         return output
         
+class BERT_NSP(nn.Module):
+    # CLS로 판단
+    def __init__(self,args):
+        super().__init__()
     
+        self.linear = nn.Linear(args.d_model,2)
+    def forward(self,input):
+        # input : (bs, seq_len, d_model)
+        output = self.linear(input[:,0]) # CLS token
+        return output
+
+class BERT_pretrain(nn.Module):
+    def __init__(self,args):
+        super().__init__()
+        self.bert = BERT(args)
+        self.mlm = MLM(args)
+        self.nsp = BERT_NSP(args)
+    def forward(self,input_ids,segment_ids):
+        output = self.bert(input_ids,segment_ids)
+        mlm_output=self.mlm(output)
+        nsp_output=self.nsp(output)
+        return mlm_output,nsp_output
+
 
     
