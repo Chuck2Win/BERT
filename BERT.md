@@ -58,7 +58,7 @@ A :arrow_forward: B
 
 
 
-## 구현
+## 구현 - 모델 구현 자체는 어렵지 않다.
 
 데이터 전처리+Embedding + Model 부분만 구현
 
@@ -66,25 +66,35 @@ A :arrow_forward: B
 
 :heavy_plus_sign: nn.multiheadattention 등은 활용 안하고, 복습 차원에서 nn.Linear로 구현 예정
 
+
+
 ![transformer](C:\Users\admin\Desktop\transformer.png)
+
+input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면 1)
+
+#### 고민사항
+
+NSP에서 A,B에 한번 쓰였던 것은 다시 안써야되는 것인지... (`bert pytorch 참조.`)
+
+`일단` 다시 쓰는 것으로 구성
 
 ## HyperParameters
 
-| Hyperparameter |                                 |                                      |
-| -------------- | ------------------------------- | ------------------------------------ |
-| n_layers       | 12                              |                                      |
-| n_head         | 12                              |                                      |
-| d_model        | 768                             |                                      |
-| d_ff           | 768*4                           |                                      |
-| dropout        | 0.1                             |                                      |
-| n_vocab        | 32000                           |                                      |
-| batch size     | 256                             |                                      |
-| seq_len        | 512                             |                                      |
-| epochs         | 40                              |                                      |
-| Adam           | b1 0.9, b2=0.999, L2 decay 0.01 |                                      |
-| lr             | 1e-4                            | warm up 10,000steps and linear decay |
-| dropout        | 0.1                             |                                      |
-| activation     | gelu                            |                                      |
+| Hyperparameter |                                 |                                           |
+| -------------- | ------------------------------- | ----------------------------------------- |
+| n_layers       | 12                              | 4                                         |
+| n_head         | 12                              | 4                                         |
+| d_model        | 768                             | 128                                       |
+| d_ff           | 768*4                           | 128*4                                     |
+|                |                                 |                                           |
+| n_vocab        | 32000                           | 8000                                      |
+| batch size     | 256                             | 32                                        |
+| seq_len        | 512                             | 128                                       |
+| epochs         | 40                              | 100                                       |
+| Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
+| **lr**         | 1e-4                            | 1e-5,warm up 10,000steps and linear decay |
+| **dropout**    | 0.1                             | 0.1                                       |
+| activation     | gelu                            | gelu                                      |
 
 
 
@@ -174,3 +184,11 @@ $$
 ## Transformer encoder
 
 ![transformerencoder](C:\Users\admin\Desktop\transformerencoder.png)
+
+
+
+### BertTokenizer
+
+https://keep-steady.tistory.com/37
+
+https://paul-hyun.github.io/implement-paper/
