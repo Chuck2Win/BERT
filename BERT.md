@@ -8,11 +8,11 @@ BERT 논문에서 말하는 sequence는 single sentence or two sentences packed 
 
 Token embedding : `WordPiece` 활용
 
-<img src="C:\Users\admin\Desktop\bert.png" alt="bert"  />
+![bert](https://github.com/Chuck2Win/BERT/blob/main/img/bert.png)
 
 <CLS> sentence <SEP> sentence 로 구성
 
-![embedding](C:\Users\admin\Desktop\embedding.png)
+![embedding](https://github.com/Chuck2Win/BERT/blob/main/img/embedding.png)
 
 Embedding은 Token embedding + Segment embedding + Position Embedding으로 구성
 
@@ -68,7 +68,7 @@ A :arrow_forward: B
 
 
 
-![transformer](C:\Users\admin\Desktop\transformer.png)
+![transformer](https://github.com/Chuck2Win/BERT/blob/main/img/transformer.png)
 
 input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면 1)
 
@@ -108,9 +108,9 @@ https://yonghyuc.wordpress.com/2020/03/04/batch-norm-vs-layer-norm/
 
 https://jeongukjae.github.io/posts/layer-normalization/
 
-![ln](C:\Users\admin\Desktop\ln.png)
+![ln](https://github.com/Chuck2Win/BERT/blob/main/img/ln.png)
 
-![bnln](C:\Users\admin\Desktop\bnln.png)
+![bnln](https://github.com/Chuck2Win/BERT/blob/main/img/bnln.png)
 
 Batch normalization - data preprocessing에서 했던,  `feature의 mean, std` 구하기
 
@@ -179,11 +179,11 @@ MNIST - 8 layer, 128 hidden layer, 128 batch size
 $$
 GeLU(x)=0.5x(1+\tanh(\sqrt{\frac{2}{\pi}}(x+0.044715x^3)))
 $$
-![gelu](C:\Users\admin\Desktop\gelu.png)
+![gelu](https://github.com/Chuck2Win/BERT/blob/main/img/gelu.png)
 
 ## Transformer encoder
 
-![transformerencoder](C:\Users\admin\Desktop\transformerencoder.png)
+![transformerencoder](https://github.com/Chuck2Win/BERT/blob/main/img/transformerencoder.png)
 
 
 
