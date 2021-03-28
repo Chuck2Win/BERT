@@ -6,7 +6,7 @@
 import torch
 import torch.nn as nn
 import math
-
+from transformers import BertTokenizer
 
 ### embeddings ###
 class positional_encoding(nn.Module):
@@ -17,7 +17,9 @@ class positional_encoding(nn.Module):
         self.pe = pos/div
         self.pe[:,0::2] = torch.sin(self.pe[:,0::2])
         self.pe[:,1::2] = torch.cos(self.pe[:,1::2])
+        self.pe = self.pe.to(args.device) 
         self.dropout = nn.Dropout(args.dropout)
+        
     def forward(self, input):
         # input : (bs, seq_len, d_model) -> (bs, seq_len, d_model)
         seq_len = input.size(1)
@@ -29,7 +31,7 @@ class segment_embedding(nn.Module):
     # 1(first), 2(second)
     def __init__(self,args):
         super().__init__()
-        self.segment_embedding = nn.Embedding(3,args.d_model,padding_idx=0)
+        self.segment_embedding = nn.Embedding(3,args.d_model,padding_idx=args.padding_idx)
     def forward(self,segment_input):
         # input : (bs, seq_len) - [1,1,1,1,1,1,2,2,2,2,2] 이런 식 -> (bs, seq_len, d_model)
         output = self.segment_embedding(segment_input)
@@ -80,7 +82,8 @@ class multi_head_attention(nn.Module):
         
     def forward(self,input):
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
-        Q = self.linear_Q(input) 
+        Q = self.linear_Q(input)
+       # print(Q.shape)
         Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2) # bs,h,seq_len,d_k
         K = self.linear_K(input) 
         K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2)
@@ -187,6 +190,7 @@ class BERT_NSP(nn.Module):
 class BERT_pretrain(nn.Module):
     def __init__(self,args):
         super().__init__()
+        #self.tokenizer = BertTokenizer.from_pretrained(args.tokenizer_file,strip_accents=False,lowercase=False)
         self.bert = BERT(args)
         self.mlm = MLM(args)
         self.nsp = BERT_NSP(args)
