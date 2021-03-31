@@ -80,23 +80,28 @@ NSP에서 A,B에 한번 쓰였던 것은 다시 안써야되는 것인지... (`b
 
 ## HyperParameters
 
-| Hyperparameter |                                 |                                           |
+| Hyperparameter |             Original                    |           MINE                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
 | n_layers       | 12                              | 4                                         |
 | n_head         | 12                              | 4                                         |
 | d_model        | 768                             | 128                                       |
 | d_ff           | 768*4                           | 128*4                                     |
 |                |                                 |                                           |
-| n_vocab        | 32000                           | 8000                                      |
+| n_vocab        | 32000                           | 32000                                      |
 | batch size     | 256                             | 32                                        |
 | seq_len        | 512                             | 128                                       |
 | epochs         | 40                              | 100                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
-| **lr**         | 1e-4                            | 1e-5,warm up 10,000steps and linear decay |
+| **lr**         | 1e-4                            | 1e-5,warm up 10,00steps and linear decay |
 | **dropout**    | 0.1                             | 0.1                                       |
 | activation     | gelu                            | gelu                                      |
 
-
+## Status  
+현재 학습이 안되고 있음
+- TensorBoard로 Tracking(https://colab.research.google.com/github/pytorch/tutorials/blob/gh-pages/_downloads/tensorboard_with_pytorch.ipynb)
+- Data의 수를 줄임(DN layer도 축소, no dropout and ReLU)  
+- 학습은 잘 진행됨
+- 현재, ReLU / GeLU로 나눠서 진행 중(dropout on/off)  
 
 ## 참고 공부
 
