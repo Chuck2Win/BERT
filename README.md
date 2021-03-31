@@ -77,8 +77,8 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 
 | Hyperparameter |             Original                    |           MINE                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
-| n_layers       | 12                              | 4                                         |
-| n_head         | 12                              | 4                                         |
+| n_layers       | 12                              | 2                                         |
+| n_head         | 12                              | 2                                         |
 | d_model        | 768                             | 128                                       |
 | d_ff           | 768*4                           | 128*4                                     |
 |                |                                 |                                           |
