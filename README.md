@@ -1,6 +1,8 @@
 # BERT
 
 ## Pretrain - MLM + NSP (data는 NSMC로 pretrain시킴 + NSMC를 finetunning까지 할 예정)
+## Two Track으로 진행 중 - 연구실 컴퓨터 - 나무위키 100만건 sentence pretrain 
+## Colab - NSMC 15만건 pretrain
 
 ### comment
 
