@@ -26,13 +26,13 @@ from tqdm import tqdm
 import time
 import torch
 parser = argparse.ArgumentParser() 
-parser.add_argument("--corpus_file", type=str, default = './data/preprocessed_data.txt') 
-parser.add_argument("--tokenizer_file", type=str, default='./tokenizer_model') 
+parser.add_argument("--corpus_file", type=str, default = './data/preprocessed_data_2.txt') 
+parser.add_argument("--tokenizer_file", type=str, default='./tokenizer_model2') 
 parser.add_argument("--length", type=int, default= 1000000)
 parser.add_argument("--seq_len", type=int, default= 128)
-parser.add_argument("--output_file", type=str, default = './data/total.txt') # {A_ids,A_labels,B_ids,B_labels,is_nest}
-parser.add_argument("--mask_file", type=str, default = './data/masked_text.txt')  
-parser.add_argument("--label_file", type=str, default = './data/masked_label.txt') 
+parser.add_argument("--output_file", type=str, default = './data/total2.txt') # {A_ids,A_labels,B_ids,B_labels,is_nest}
+parser.add_argument("--mask_file", type=str, default = './data/masked_text2.txt')  
+parser.add_argument("--label_file", type=str, default = './data/masked_label2.txt') 
         
 class Dataset:
     def __init__(self):
@@ -167,7 +167,7 @@ class Dataset:
                 if s<=0.8: # [MASK]
                     new_sentence.append(self.tokenizer.mask_token_id)
                 elif 0.8<=s<0.9: # random
-                    new_sentence.append(random.randint(0,self.tokenizer.vocab_size))
+                    new_sentence.append(random.randint(0,self.tokenizer.vocab_size-1))
                 else:
                     new_sentence.append(i)
                 label.append(i)

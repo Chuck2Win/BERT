@@ -46,12 +46,12 @@ class token_embedding(nn.Module):
         output = self.token_embedding(input) 
         return output
 
-
-def gelu(x):
-    '''
-    gelu(x) = 0.5*x*(1+tanh(sqrt(2/pi)*(x+0.0044715x**3))
-    '''
-    return 0.5*x*(1+torch.tanh(math.sqrt(2/math.pi)*(x+0.0044715*x**3)))
+class gelu(nn.Module):
+    def __init__(self):
+        super().__init__()
+    #gelu(x) = 0.5*x*(1+tanh(sqrt(2/pi)*(x+0.0044715x**3))
+    def forward(self,x):
+        return 0.5*x*(1+torch.tanh(math.sqrt(2/math.pi)*(x+0.0044715*(x**3))))
 
 # 각 layer에서 sample의 평균과 std를 구함(feature 무관)
 # 그를 이용해서 각 sample를 정규화 시킴
@@ -61,15 +61,20 @@ class layer_norm(nn.Module):
     def __init__(self,args):
         super().__init__()
         
-        self.gamma = nn.Parameter(torch.ones(1,args.seq_len,args.d_model)) # 1로 두는 까닭은 batch 마다 다를 필요가 없다.
-        self.beta = nn.Parameter(torch.zeros(1,args.seq_len,args.d_model))
+        self.gamma = nn.Parameter(torch.ones((1,args.seq_len,args.d_model))) # 1로 두는 까닭은 batch 마다 다를 필요가 없다.
+        self.beta = nn.Parameter(torch.zeros((1,args.seq_len,args.d_model)))
         self.eps = 1e-8
     def forward(self,input):
         # input shape : (bs,seq_len,d_model)
         mean = input.mean(-1,keepdim=True) # bs, seq_len,1
         std = input.std(-1,keepdim=True) # bs, seq_len,1
         output = (input-mean)/(std+self.eps) # bs, seq_len, d_model
+        #try:
         output = self.gamma*output+self.beta
+        #except:
+            #print(self.gamma.shape)
+            #print(output.shape)
+            #print(self.beta.shape)
         return output
 
 class multi_head_attention(nn.Module):
@@ -84,15 +89,15 @@ class multi_head_attention(nn.Module):
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
         Q = self.linear_Q(input)
        # print(Q.shape)
-        Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2) # bs,h,seq_len,d_k
+        Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
         K = self.linear_K(input) 
-        K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2)
+        K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous()
         V = self.linear_V(input) 
-        V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2)
+        V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous()
         
-        softmax = nn.Softmax(3).forward(torch.matmul(Q,K.transpose(2,3))/math.sqrt(self.args.d_k))
+        softmax = nn.Softmax(3).forward(torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.args.d_k))
         output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
-        output = output.transpose(1,2)
+        output = output.transpose(1,2).contiguous()
         output = output.reshape(-1,self.args.seq_len,self.args.n_head*self.args.d_k) # bs, seq_len, d_model
         return output
 
@@ -103,9 +108,10 @@ class feed_forward_network(nn.Module):
         self.f1 = nn.Linear(args.d_model,args.d_ff)
         self.f2 = nn.Linear(args.d_ff,args.d_model)
         self.dropout = nn.Dropout(args.dropout)
+        self.gelu = gelu()
     def forward(self,input):
         output = self.f1(input)
-        output = self.dropout(gelu(output))
+        output = self.dropout(self.gelu(output))
         output = self.f2(output)
         return output
     
@@ -119,6 +125,7 @@ class layer_connection(nn.Module):
         # input (bs, seq_len, d_model)
         # layer norm + dropout + residual net
         # attention is all you need 에선 , LayerNormalization(sublayer(input)+input)
+        #print(sublayer(input).shape)
         output = input + self.dropout(self.layer_norm(sublayer(input)))
         return output
 
@@ -154,7 +161,6 @@ class BERT(nn.Module):
         
         # embedding
         te = self.TE(input_ids)
-        
         se = self.SE(segment_ids)
         e = te+se
         output = self.PE(e)
