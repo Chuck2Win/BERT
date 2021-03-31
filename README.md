@@ -1,6 +1,6 @@
 # BERT
 
-## MLM + NSP
+## Pretrain - MLM + NSP (data는 NSMC로 pretrain시킴 + NSMC를 finetunning까지 할 예정)
 
 ### comment
 
@@ -64,7 +64,7 @@ A :arrow_forward: B
 
 (Word Piece는 huggingface 그것을 가져올 것)
 
-:heavy_plus_sign: nn.multiheadattention 등은 활용 안하고, 복습 차원에서 nn.Linear로 구현 예정
+:heavy_plus_sign: nn.multiheadattention 등은 활용 안하고, 복습 차원에서 nn.Linear로 구현
 
 
 
@@ -72,11 +72,6 @@ A :arrow_forward: B
 
 input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면 1)
 
-#### 고민사항
-
-NSP에서 A,B에 한번 쓰였던 것은 다시 안써야되는 것인지... (`bert pytorch 참조.`)
-
-`일단` 다시 쓰는 것으로 구성
 
 ## HyperParameters
 
