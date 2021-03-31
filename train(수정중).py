@@ -4,6 +4,7 @@ Created on Tue Mar 16 11:02:35 2021
 
 @author: admin
 """
+# 수정중..
 from model import *
 import torch
 import pickle
