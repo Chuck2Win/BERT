@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # attention is all you need 에서 Transformer encoder만 따오면 된다.
 # encoder layer = self attention layer(layer normalization+residual net) -> feed forward layer(layer normalization+residual net) 
-
+ 
 # multi head 
 import torch
 import torch.nn as nn
 import math
 from transformers import BertTokenizer
-
+ 
 ### embeddings ###
 class positional_encoding(nn.Module):
     def __init__(self,args):
@@ -25,7 +25,7 @@ class positional_encoding(nn.Module):
         seq_len = input.size(1)
         output = input + self.pe[:seq_len,:].unsqueeze(0)        
         return self.dropout(output) # (max_len, d_model)        
-
+ 
 class segment_embedding(nn.Module):
     # 0 
     # 1(first), 2(second)
@@ -45,18 +45,18 @@ class token_embedding(nn.Module):
         # input : (bs, seq_len) -> (bs, seq_len, d_model)
         output = self.token_embedding(input) 
         return output
-
+ 
 class gelu(nn.Module):
     def __init__(self):
         super().__init__()
     #gelu(x) = 0.5*x*(1+tanh(sqrt(2/pi)*(x+0.0044715x**3))
     def forward(self,x):
         return 0.5*x*(1+torch.tanh(math.sqrt(2/math.pi)*(x+0.0044715*(x**3))))
-
+ 
 # 각 layer에서 sample의 평균과 std를 구함(feature 무관)
 # 그를 이용해서 각 sample를 정규화 시킴
 # scaling and shifting - 이 것이 parameter임
-
+ 
 class layer_norm(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -76,7 +76,7 @@ class layer_norm(nn.Module):
             #print(output.shape)
             #print(self.beta.shape)
         return output
-
+ 
 class multi_head_attention(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -100,7 +100,7 @@ class multi_head_attention(nn.Module):
         output = output.transpose(1,2).contiguous()
         output = output.reshape(-1,self.args.seq_len,self.args.n_head*self.args.d_k) # bs, seq_len, d_model
         return output
-
+ 
 class feed_forward_network(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -128,7 +128,7 @@ class layer_connection(nn.Module):
         #print(sublayer(input).shape)
         output = input + self.dropout(self.layer_norm(sublayer(input)))
         return output
-
+ 
 class Transformer_Encoder_Layer(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -143,7 +143,7 @@ class Transformer_Encoder_Layer(nn.Module):
         output1 = self.layer_connection1(input,self.mha)
         output2 = self.layer_connection2(output1,self.ffn)
         return output2
-
+ 
 class BERT(nn.Module):
     def __init__(self,args):
         
@@ -169,9 +169,9 @@ class BERT(nn.Module):
             output = self.encoder[i](output)
         return output # (bs,seq_len,d_model)
  
-
-
-
+ 
+ 
+ 
 class MLM(nn.Module): # MASK 위치에 해당하는 벡터가 들어오면 예측
     def __init__(self,args):
         super().__init__()
@@ -192,7 +192,7 @@ class BERT_NSP(nn.Module):
         # input : (bs, seq_len, d_model)
         output = self.linear(input[:,0]) # CLS token
         return output
-
+ 
 class BERT_pretrain(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -205,6 +205,3 @@ class BERT_pretrain(nn.Module):
         mlm_output=self.mlm(output)
         nsp_output=self.nsp(output)
         return mlm_output,nsp_output
-
-
-    
