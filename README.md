@@ -118,10 +118,7 @@ Batch normalization - data preprocessing에서 했던,  `feature의 mean, std` �
 
 - batch size와 관련이 깊음
 
-$$
-\mu_{i} = \frac{1}{BS}\sum^{BS}_{n=1}x_{n,i}\\
-    \sigma_{i}^2 = \frac{1}{BS}\sum^{BS}_{n=1}[x_{n,i}-\mu_i]^2
-$$
+![bnln](https://github.com/Chuck2Win/BERT/blob/main/img/eq1.png)
 
 - BS : Batch size, $\mu_i$ 에서 i는 i 번째 feature
 
@@ -130,23 +127,15 @@ $$
 Layer normalization - 각 `sample의 mean, std` 구하기
 
 - batch size와 관련이 없음.
-  $$
-  \mu_{n} = \frac{1}{K}\sum^{K}_{i=1}x_{n,i}\\
-  \sigma_{n}^2 = \frac{1}{K}\sum^{K}_{i=1}[x_{n,i}-\mu_n]^2
-  $$
+
+![bnln](https://github.com/Chuck2Win/BERT/blob/main/img/eq2.png)
 
 - K : feature의 개수
 
 `Layer Normalization` 
 
 n번째 sample의 k번째 feature
-$$
-\hat{x}_{n,k} = \frac{x_{n,k}-\mu_n}{\sqrt{\sigma_{n}^2+\epsilon}}
-$$
-scaling($\boldsymbol{\gamma}$) and shifting step($\boldsymbol{\beta}$)
-$$
-y_n = \boldsymbol{\gamma}\hat{\boldsymbol{x}}_{n}+\boldsymbol{\beta} \equiv LN_{\boldsymbol{\gamma},\boldsymbol{\beta}}(\boldsymbol{x}_{n})
-$$
+![bnln](https://github.com/Chuck2Win/BERT/blob/main/img/eq3.png)
 
 
 #### LN의 효과 - 직관적으로 정규화 시키니깐, 학습 속도 향상될 것으로 보임
@@ -178,9 +167,7 @@ MNIST - 8 layer, 128 hidden layer, 128 batch size
 | 7.89% | 8.16% | 8.41% |
 
 :arrow_forward: GeLU가 좋음.
-$$
-GeLU(x)=0.5x(1+\tanh(\sqrt{\frac{2}{\pi}}(x+0.044715x^3)))
-$$
+![bnln](https://github.com/Chuck2Win/BERT/blob/main/img/eq4.png)
 ![gelu](https://github.com/Chuck2Win/BERT/blob/main/img/gelu.png)
 
 ## Transformer encoder
