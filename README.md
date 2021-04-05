@@ -184,3 +184,5 @@ https://paul-hyun.github.io/implement-paper/
 
 ### reference
 visdom 사용법 - https://keep-steady.tistory.com/12
+python 3.8부턴 호환이 안되서 그에 대한 해결책.
+https://www.programmersought.com/article/49705560362/
