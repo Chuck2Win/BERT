@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
-# attention is all you need 에서 Transformer encoder만 따오면 된다.
-# encoder layer = self attention layer(layer normalization+residual net) -> feed forward layer(layer normalization+residual net) 
- 
-# multi head 
 import torch
+import pickle
 import torch.nn as nn
-import math
+import argparse
+from tqdm import tqdm
+from torch.utils.data import DataLoader, TensorDataset
+from transformers import get_linear_schedule_with_warmup
+from matplotlib import pyplot as plt
 from transformers import BertTokenizer
- 
+import math
 ### embeddings ###
 class positional_encoding(nn.Module):
     def __init__(self,args):
