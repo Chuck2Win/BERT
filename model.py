@@ -1,11 +1,6 @@
 import torch
 import pickle
 import torch.nn as nn
-import argparse
-from tqdm import tqdm
-from torch.utils.data import DataLoader, TensorDataset
-from transformers import get_linear_schedule_with_warmup
-from matplotlib import pyplot as plt
 from transformers import BertTokenizer
 import math
 ### embeddings ###
