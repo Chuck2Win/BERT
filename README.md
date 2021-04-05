@@ -81,15 +81,15 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | -------------- | ------------------------------- | ----------------------------------------- |
 | n_layers       | 12                              | 2                                         |
 | n_head         | 12                              | 2                                         |
-| d_model        | 768                             | 128                                       |
-| d_ff           | 768*4                           | 128*4                                     |
+| d_model        | 768                             | 64                                       |
+| d_ff           | 768*4                           | 256                                     |
 |                |                                 |                                           |
-| n_vocab        | 32000                           | 32000                                      |
+| n_vocab        | 32000                           | 8000                                      |
 | batch size     | 256                             | 32                                        |
 | seq_len        | 512                             | 128                                       |
 | epochs         | 40                              | 100                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
-| **lr**         | 1e-4                            | 1e-5,warm up 10,00steps and linear decay |
+| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-5,warm up 10,00steps|
 | **dropout**    | 0.1                             | 0.1                                       |
 | activation     | gelu                            | gelu                                      |
 
@@ -181,3 +181,6 @@ MNIST - 8 layer, 128 hidden layer, 128 batch size
 https://keep-steady.tistory.com/37
 
 https://paul-hyun.github.io/implement-paper/
+
+### reference
+visdom 사용법 - https://keep-steady.tistory.com/12
