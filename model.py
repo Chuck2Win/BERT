@@ -1,14 +1,19 @@
+
+
+
+###################################################################################################################################
 import torch
 import pickle
 import torch.nn as nn
 from transformers import BertTokenizer
 import math
 ### embeddings ###
+
 class positional_encoding(nn.Module):
     def __init__(self,args):
         super().__init__()
-        pos = torch.arange(0,args.max_len).unsqueeze(1) # max_len, 1
-        div = (10000**(torch.arange(0,args.d_model)/args.d_model)).unsqueeze(0) # 1, d_model
+        pos = torch.arange(0,args.max_len,device = args.device).unsqueeze(1) # max_len, 1
+        div = (10000**(torch.arange(0,args.d_model,device = args.device)/args.d_model)).unsqueeze(0) # 1, d_model
         self.pe = pos/div
         self.pe[:,0::2] = torch.sin(self.pe[:,0::2])
         self.pe[:,1::2] = torch.cos(self.pe[:,1::2])
@@ -18,7 +23,9 @@ class positional_encoding(nn.Module):
     def forward(self, input):
         # input : (bs, seq_len, d_model) -> (bs, seq_len, d_model)
         seq_len = input.size(1)
-        output = input + self.pe[:seq_len,:].unsqueeze(0)        
+        output = input + self.pe[:seq_len,:].unsqueeze(0)  
+       # print(input)
+       # print(sel)
         return self.dropout(output) # (max_len, d_model)        
  
 class segment_embedding(nn.Module):
@@ -164,9 +171,6 @@ class BERT(nn.Module):
             output = self.encoder[i](output)
         return output # (bs,seq_len,d_model)
  
- 
- 
- 
 class MLM(nn.Module): # MASK 위치에 해당하는 벡터가 들어오면 예측
     def __init__(self,args):
         super().__init__()
@@ -200,3 +204,4 @@ class BERT_pretrain(nn.Module):
         mlm_output=self.mlm(output)
         nsp_output=self.nsp(output)
         return mlm_output,nsp_output
+###################################################################################################################################
