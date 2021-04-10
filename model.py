@@ -1,7 +1,4 @@
-
-
-
-###################################################################################################################################
+# -*- coding: utf-8 -*-
 import torch
 import pickle
 import torch.nn as nn
@@ -9,7 +6,7 @@ from transformers import BertTokenizer
 import math
 ### embeddings ###
 
-class positional_encoding(nn.Module):
+class positional_enbedding(nn.Module):
     def __init__(self,args):
         super().__init__()
         pos = torch.arange(0,args.max_len,device = args.device).unsqueeze(1) # max_len, 1
@@ -28,6 +25,7 @@ class positional_encoding(nn.Module):
        # print(sel)
         return self.dropout(output) # (max_len, d_model)        
  
+
 class segment_embedding(nn.Module):
     # 0 
     # 1(first), 2(second)
@@ -79,6 +77,24 @@ class layer_norm(nn.Module):
             #print(self.beta.shape)
         return output
  
+input = torch.randint(1,10,(5,12))
+input[:,5:]=0
+
+embedding = nn.Embedding(10, 10, padding_idx = 0)
+
+input2 = embedding.forward(input)
+
+input2
+
+input3 = torch.matmul(input2,input2.transpose(1,2).contiguous())
+input3.shape
+mask = input.eq(0).unsqueeze(1).expand(5,12,12)
+mask = input.eq()
+mask.expand() 
+input3.masked_fill(mask,-1e-8)
+
+
+
 class multi_head_attention(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -87,8 +103,10 @@ class multi_head_attention(nn.Module):
         self.linear_K = nn.Linear(args.d_model,args.d_model)
         self.linear_V = nn.Linear(args.d_model,args.d_model)
         
-    def forward(self,input):
+    def forward(self, input, mask = None):
+        
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
+        # 여기서 mask는 padding mask 용
         Q = self.linear_Q(input)
        # print(Q.shape)
         Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
@@ -153,7 +171,7 @@ class BERT(nn.Module):
         self.args = args
         self.TE = token_embedding(args)
         self.SE = segment_embedding(args)
-        self.PE = positional_encoding(args)
+        self.PE = positional_enbedding(args)
         self.encoder = nn.ModuleList([Transformer_Encoder_Layer(args) for _ in range(args.n_layers)])
         
     def forward(self, input_ids, segment_ids):
