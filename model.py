@@ -67,7 +67,7 @@ class multi_head_self_attention(nn.Module):
         
     def forward(self, input, mask = None):
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
-        # 여기서 mask는 padding mask 용 - (bs, seq_len) -> (bs,seq_len,seq_len)
+        # 여기서 mask는 padding mask 용 - (bs, seq_len)
         Q = self.linear_Q(input)
         Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
         K = self.linear_K(input) 
