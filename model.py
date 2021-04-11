@@ -25,7 +25,7 @@ class positional_embedding(nn.Module):
        # print(sel)
         return self.dropout(output) # (max_len, d_model)        
  
-
+# for bert
 class segment_embedding(nn.Module):
     # 0 
     # 1(first), 2(second)
@@ -76,7 +76,7 @@ class multi_head_self_attention(nn.Module):
         V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous()
         
         next = torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.d_k)
-        if mask is Not None:
+        if mask is not None:
             mask = mask.unsqueeze(1).unsqueeze(-1).expand(next.size())
             next = next.masked_fill(mask,-1e-8)
         softmax = nn.Softmax(3).forward(next)
@@ -102,7 +102,6 @@ class feed_forward_network(nn.Module):
 class layer_norm(nn.Module):
     def __init__(self,args):
         super().__init__()
-        
         self.gamma = nn.Parameter(torch.ones((1,args.seq_len,args.d_model))) # 1로 두는 까닭은 batch 마다 다를 필요가 없다.
         self.beta = nn.Parameter(torch.zeros((1,args.seq_len,args.d_model)))
         self.eps = 1e-8
@@ -126,7 +125,7 @@ class layer_connection(nn.Module):
         super().__init__()
         self.layer_norm = layer_norm(args)
         self.dropout=nn.Dropout(args.dropout)
-    def forward(self,sublayer,input,mask=None):
+    def forward(self,sublayer,input,mask = None):
         # input (bs, seq_len, d_model)
         # layer norm + dropout + residual net
         # attention is all you need 에선 , LayerNormalization(sublayer(input)+input)
@@ -144,7 +143,7 @@ class Transformer_Encoder_Layer(nn.Module):
         self.mha = multi_head_self_attention(args)
         self.layer_connection2 = layer_connection(args)
         self.ffn = feed_forward_network(args)
-    def forward(self,input, mask = None):
+    def forward(self,input,mask = None):
         # multi head attention
         # feed forward network
         output1 = self.layer_connection1(self.mha, input, mask)
@@ -165,18 +164,20 @@ class BERT(nn.Module):
         # input ids (bs, seq_len) <- tokens
         # segment_ids (bs,seq_len) <- segments
         # masks (bs, seq_len) <- mask된 부분
-        masks = input_ids.eq(self.args.padding_idx) 
+        
         
         # embedding
         te = self.TE(input_ids)
         se = self.SE(segment_ids)
         e = te+se
         output = self.PE(e)
-        # encoder
+        # masks
+        masks = input_ids.eq(self.args.padding_idx)
+        # output
         for i in range(self.args.n_layers):
             output = self.encoder[i](output,masks)
         return output # (bs,seq_len,d_model)
- 
+    
 class MLM(nn.Module): # MASK 위치에 해당하는 벡터가 들어오면 예측
     def __init__(self,args):
         super().__init__()
@@ -210,4 +211,4 @@ class BERT_pretrain(nn.Module):
         mlm_output=self.mlm(output)
         nsp_output=self.nsp(output)
         return mlm_output,nsp_output
-###################################################################################################################################
+
