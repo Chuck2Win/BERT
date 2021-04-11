@@ -15,19 +15,18 @@ from torch.utils.data import DataLoader, TensorDataset
 from transformers import get_linear_schedule_with_warmup
 parser = argparse.ArgumentParser()
 parser.add_argument("--batch_size", type=int, help="batch size", default = 32)
-parser.add_argument("--epochs", type=int, help="epochs", default = 20)
+parser.add_argument("--epochs", type=int, help="epochs", default = 40)
 parser.add_argument("--lr", type=float, help="learning_rate", default = 1e-5)
 parser.add_argument("--weight_decay", type=float, help="weight_decay", default = 0.01)
 parser.add_argument("--betas", type=list, help="betas", default = [0.9,0.999])
-parser.add_argument("--lr_warmup", type=int, help="learning rate warm up", default = 10000)
+parser.add_argument("--lr_warmup", type=int, help="learning rate warm up", default = 1000)
 parser.add_argument("--dropout", type=float, help="dropout rate", default = 1e-1)
 parser.add_argument("--n_layers", type=int, help="number of encoder layers", default = 4)
 parser.add_argument("--tokenizer_file", type=str, default='./tokenizer_model') 
 parser.add_argument("--n_head", type=int, help="number of heads", default = 4)
 parser.add_argument("--d_model", type=int, help="dimension of model", default = 128)
 parser.add_argument("--d_ff", type=int, help="dimension of ffn1", default = 128*4)
-parser.add_argument("--d_k", type=int, help="dimension of dk, same as d_model//n_head", default = 128//4)
-parser.add_argument("--n_vocab", type=int, help="number of vocabs", default = 32000)
+parser.add_argument("--n_vocab", type=int, help="number of vocabs", default = 8000)
 parser.add_argument("--seq_len", type=int, help="length of sequence", default = 128)
 parser.add_argument("--max_len", type=int, help="maximum of positional encoding position parameter", default = 9999)
 parser.add_argument("--padding_idx", type=int, help="padding index", default = 0)
@@ -50,7 +49,7 @@ def make_data_loader():
         except:
             F.close()
             break
-    X = TensorDataset(torch.LongTensor(ids),torch.LongTensor(segment_ids),torch.LongTensor(labels),torch.LongTensor(is_next))
+    X = TensorDataset(torch.LongTensor(ids),torch.LongTensor(segment_ids),torch.LongTensor(labels))#,torch.LongTensor(is_next))
     dataloader = DataLoader(X,args.batch_size,shuffle=True)
     return dataloader
 
@@ -60,11 +59,11 @@ def train_pretrain():
         for data in tqdm(dataloader,desc='steps',mininterval=600):
             optimizer.zero_grad()
             data = [i.to(device) for i in data]
-            ids,segment_ids,labels,is_next = data
-            mlm_output,nsp_output=model.forward(ids,segment_ids)
+            ids,segment_ids,labels = data#,is_next 
+            mlm_output=model.forward(ids,segment_ids)
             loss1 = criterion1(mlm_output.transpose(1,2),labels)
-            loss2 = criterion2(nsp_output,is_next)
-            loss = loss1+loss2
+            #loss2 = criterion2(nsp_output,is_next)
+            loss = loss1#+loss2
             loss.backward()
             optimizer.step()
             scheduler.step()
@@ -76,7 +75,7 @@ if __name__ == '__main__':
     device = args.device
     model = BERT_pretrain(args).to(device)
     criterion1 = nn.CrossEntropyLoss(ignore_index=args.padding_idx)
-    criterion2 = nn.CrossEntropyLoss()
+    #criterion2 = nn.CrossEntropyLoss()
     dataloader=make_data_loader()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, betas=args.betas, weight_decay=args.weight_decay)
     scheduler=get_linear_schedule_with_warmup(optimizer,args.lr_warmup,args.epochs*len(dataloader))
