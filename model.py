@@ -6,7 +6,7 @@ from transformers import BertTokenizer
 import math
 ### embeddings ###
 
-class positional_enbedding(nn.Module):
+class positional_embedding(nn.Module):
     def __init__(self,args):
         super().__init__()
         pos = torch.arange(0,args.max_len,device = args.device).unsqueeze(1) # max_len, 1
@@ -56,6 +56,48 @@ class gelu(nn.Module):
 # 각 layer에서 sample의 평균과 std를 구함(feature 무관)
 # 그를 이용해서 각 sample를 정규화 시킴
 # scaling and shifting - 이 것이 parameter임
+class multi_head_self_attention(nn.Module):
+    def __init__(self,args):
+        super().__init__()
+        self.args = args
+        self.d_k = self.args.d_model // self.args.n_head
+        self.linear_Q = nn.Linear(args.d_model,args.d_model)
+        self.linear_K = nn.Linear(args.d_model,args.d_model)
+        self.linear_V = nn.Linear(args.d_model,args.d_model)
+        
+    def forward(self, input, mask = None):
+        # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
+        # 여기서 mask는 padding mask 용 - (bs, seq_len) -> (bs,seq_len,seq_len)
+        Q = self.linear_Q(input)
+        Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
+        K = self.linear_K(input) 
+        K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous()
+        V = self.linear_V(input) 
+        V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous()
+        
+        next = torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.d_k)
+        if mask is Not None:
+            mask = mask.unsqueeze(1).unsqueeze(-1).expand(next.size())
+            next = next.masked_fill(mask,-1e-8)
+        softmax = nn.Softmax(3).forward(next)
+        output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
+        output = output.transpose(1,2).contiguous()
+        output = output.reshape(-1,self.args.seq_len,self.args.d_model) # bs, seq_len, d_model
+        return output
+ 
+class feed_forward_network(nn.Module):
+    def __init__(self,args):
+        super().__init__()
+        
+        self.f1 = nn.Linear(args.d_model,args.d_ff)
+        self.f2 = nn.Linear(args.d_ff,args.d_model)
+        self.dropout = nn.Dropout(args.dropout)
+        self.gelu = gelu()
+    def forward(self,input):
+        output = self.f1(input)
+        output = self.dropout(self.gelu(output))
+        output = self.f2(output)
+        return output
  
 class layer_norm(nn.Module):
     def __init__(self,args):
@@ -76,64 +118,7 @@ class layer_norm(nn.Module):
             #print(output.shape)
             #print(self.beta.shape)
         return output
- 
-input = torch.randint(1,10,(5,12))
-input[:,5:]=0
-
-embedding = nn.Embedding(10, 10, padding_idx = 0)
-
-input2 = embedding.forward(input)
-
-input2
-
-input3 = torch.matmul(input2,input2.transpose(1,2).contiguous())
-input3.shape
-mask = input.eq(0).unsqueeze(1).expand(5,12,12)
-mask = input.eq()
-mask.expand() 
-input3.masked_fill(mask,-1e-8)
-
-
-
-class multi_head_attention(nn.Module):
-    def __init__(self,args):
-        super().__init__()
-        self.args = args
-        self.linear_Q = nn.Linear(args.d_model,args.d_model)
-        self.linear_K = nn.Linear(args.d_model,args.d_model)
-        self.linear_V = nn.Linear(args.d_model,args.d_model)
-        
-    def forward(self, input, mask = None):
-        
-        # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
-        # 여기서 mask는 padding mask 용
-        Q = self.linear_Q(input)
-       # print(Q.shape)
-        Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
-        K = self.linear_K(input) 
-        K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous()
-        V = self.linear_V(input) 
-        V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.args.d_k).transpose(1,2).contiguous()
-        
-        softmax = nn.Softmax(3).forward(torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.args.d_k))
-        output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
-        output = output.transpose(1,2).contiguous()
-        output = output.reshape(-1,self.args.seq_len,self.args.n_head*self.args.d_k) # bs, seq_len, d_model
-        return output
- 
-class feed_forward_network(nn.Module):
-    def __init__(self,args):
-        super().__init__()
-        
-        self.f1 = nn.Linear(args.d_model,args.d_ff)
-        self.f2 = nn.Linear(args.d_ff,args.d_model)
-        self.dropout = nn.Dropout(args.dropout)
-        self.gelu = gelu()
-    def forward(self,input):
-        output = self.f1(input)
-        output = self.dropout(self.gelu(output))
-        output = self.f2(output)
-        return output
+    
     
 class layer_connection(nn.Module):
     # input + dropout(layernorm(sublayer(input)))
@@ -141,27 +126,29 @@ class layer_connection(nn.Module):
         super().__init__()
         self.layer_norm = layer_norm(args)
         self.dropout=nn.Dropout(args.dropout)
-    def forward(self,input,sublayer):
+    def forward(self,sublayer,input,mask=None):
         # input (bs, seq_len, d_model)
         # layer norm + dropout + residual net
         # attention is all you need 에선 , LayerNormalization(sublayer(input)+input)
         #print(sublayer(input).shape)
-        output = input + self.dropout(self.layer_norm(sublayer(input)))
+        if mask is None:
+            output = input + self.dropout(self.layer_norm(sublayer(input)))
+        else:
+            output = input + self.dropout(self.layer_norm(sublayer(input,mask)))
         return output
  
 class Transformer_Encoder_Layer(nn.Module):
     def __init__(self,args):
         super().__init__()
-        
         self.layer_connection1 = layer_connection(args)
-        self.mha = multi_head_attention(args)
+        self.mha = multi_head_self_attention(args)
         self.layer_connection2 = layer_connection(args)
         self.ffn = feed_forward_network(args)
-    def forward(self,input):
+    def forward(self,input, mask = None):
         # multi head attention
         # feed forward network
-        output1 = self.layer_connection1(input,self.mha)
-        output2 = self.layer_connection2(output1,self.ffn)
+        output1 = self.layer_connection1(self.mha, input, mask)
+        output2 = self.layer_connection2(self.ffn, output1)
         return output2
  
 class BERT(nn.Module):
@@ -178,6 +165,7 @@ class BERT(nn.Module):
         # input ids (bs, seq_len) <- tokens
         # segment_ids (bs,seq_len) <- segments
         # masks (bs, seq_len) <- mask된 부분
+        masks = input_ids.eq(self.args.padding_idx) 
         
         # embedding
         te = self.TE(input_ids)
@@ -186,7 +174,7 @@ class BERT(nn.Module):
         output = self.PE(e)
         # encoder
         for i in range(self.args.n_layers):
-            output = self.encoder[i](output)
+            output = self.encoder[i](output,masks)
         return output # (bs,seq_len,d_model)
  
 class MLM(nn.Module): # MASK 위치에 해당하는 벡터가 들어오면 예측
