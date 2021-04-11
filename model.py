@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import torch
-import pickle
 import torch.nn as nn
-from transformers import BertTokenizer
 import math
 ### embeddings ###
 
@@ -53,9 +51,6 @@ class gelu(nn.Module):
     def forward(self,x):
         return 0.5*x*(1+torch.tanh(math.sqrt(2/math.pi)*(x+0.0044715*(x**3))))
  
-# 각 layer에서 sample의 평균과 std를 구함(feature 무관)
-# 그를 이용해서 각 sample를 정규화 시킴
-# scaling and shifting - 이 것이 parameter임
 class multi_head_self_attention(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -98,7 +93,9 @@ class feed_forward_network(nn.Module):
         output = self.dropout(self.gelu(output))
         output = self.f2(output)
         return output
- 
+# 각 layer에서 sample의 평균과 std를 구함(feature 무관)
+# 그를 이용해서 각 sample를 정규화 시킴
+# scaling and shifting - 이 것이 parameter임 
 class layer_norm(nn.Module):
     def __init__(self,args):
         super().__init__()
@@ -157,7 +154,7 @@ class BERT(nn.Module):
         self.args = args
         self.TE = token_embedding(args)
         self.SE = segment_embedding(args)
-        self.PE = positional_enbedding(args)
+        self.PE = positional_embedding(args)
         self.encoder = nn.ModuleList([Transformer_Encoder_Layer(args) for _ in range(args.n_layers)])
         
     def forward(self, input_ids, segment_ids):
@@ -205,10 +202,10 @@ class BERT_pretrain(nn.Module):
         #self.tokenizer = BertTokenizer.from_pretrained(args.tokenizer_file,strip_accents=False,lowercase=False)
         self.bert = BERT(args)
         self.mlm = MLM(args)
-        self.nsp = BERT_NSP(args)
+        #self.nsp = BERT_NSP(args)
     def forward(self,input_ids,segment_ids):
         output = self.bert(input_ids,segment_ids)
         mlm_output=self.mlm(output)
-        nsp_output=self.nsp(output)
-        return mlm_output,nsp_output
+        #nsp_output=self.nsp(output)
+        return mlm_output#,nsp_output
 
