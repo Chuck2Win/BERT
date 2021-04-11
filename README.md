@@ -1,10 +1,9 @@
 # BERT & RoBERTa
 - RoBERTa에서는 NSP loss를 활용하지 않음(이 방식 채택)
-- Mask를 Dinamic masking 활용(그냥 고정된 Masking 활용할 예정임)
+- Mask를 Dinamic masking 활용(그냥 `고정된 Masking` 활용할 예정임)
 
 ## Pretrain - MLM + NSP (data는 NSMC로 pretrain시킴 + NSMC를 finetunning까지 할 예정)
-## Two Track으로 진행 중 - 연구실 컴퓨터 - 나무위키 100만건 sentence pretrain 
-## Colab - NSMC 15만건 pretrain
+## NSMC 15만건 pretrain -> NSMC 15만건 finetunning까지(추후 나무위키 데이터로 진행예정.)
 
 ### comment
 
@@ -81,26 +80,25 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 
 | Hyperparameter |             Original                    |           MINE                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
-| n_layers       | 12                              | 2                                         |
-| n_head         | 12                              | 2                                         |
-| d_model        | 768                             | 64                                       |
-| d_ff           | 768*4                           | 256                                     |
+| n_layers       | 12                              | 4                                         |
+| n_head         | 12                              | 4                                         |
+| d_model        | 768                             | 128                                       |
+| d_ff           | 768*4                           | 512                                     |
 |                |                                 |                                           |
 | n_vocab        | 32000                           | 8000                                      |
 | batch size     | 256                             | 32                                        |
 | seq_len        | 512                             | 128                                       |
 | epochs         | 40                              | 100                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
-| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-5,warm up 10,00steps|
+| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-5,warm up 40,00steps|
 | **dropout**    | 0.1                             | 0.1                                       |
 | activation     | gelu                            | gelu                                      |
 
 ## Status  
-현재 학습이 안되고 있음
-- TensorBoard로 Tracking(https://colab.research.google.com/github/pytorch/tutorials/blob/gh-pages/_downloads/tensorboard_with_pytorch.ipynb)
-- Data의 수를 줄임(DN layer도 축소, no dropout and ReLU)  
-- 학습은 잘 진행됨
-- 현재, ReLU / GeLU로 나눠서 진행 중(dropout on/off)  
+- 학습 중
+- learning rate issue 발생했었음.
+
+
 
 ## 참고 공부
 
