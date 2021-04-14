@@ -73,7 +73,7 @@ class multi_head_self_attention(nn.Module):
         next = torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.d_k)
         if mask is not None:
             mask = mask.unsqueeze(1).unsqueeze(-1).expand(next.size())
-            next = next.masked_fill(mask,-1e-8)
+            next = next.masked_fill(mask,-1e8)
         softmax = nn.Softmax(3).forward(next)
         output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
         output = output.transpose(1,2).contiguous()
