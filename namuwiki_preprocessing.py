@@ -5,38 +5,34 @@ Created on Wed Mar 31 18:03:27 2021
 @author: admin
 """
 import re
-import os
 import pickle
 import argparse
-import pandas as pd
+from tqdm import tqdm
 
-
-# 길이가 32 이상의 것으로 하고, 100만개만 뽑아내자
-# 한글 숫자만 살리기
+# 10만개의 나무위키 문서들을 가지고 분석을 진행할 예정
+# 각각의 문서마다 pickle 파일 만들기
 parser = argparse.ArgumentParser()
-parser.add_argument("--data", type=str, default = './data/namuwiki.txt')
-parser.add_argument("--output_data", type=str, default = './data/preprocessed_data_namuwiki.txt')
-parser.add_argument("--sentence_count", type=int, default = 1000000)
+parser.add_argument("--data", type=str, default = './data/namuwiki/namuwiki.txt')
+parser.add_argument("--output_data", type=str, default = './data/namuwiki/namuwiki_document')
+parser.add_argument("--document_count", type=int, default = 100000)
 
-def substitute(i):
-    try:
-        return re.sub('[^ㄱ-ㅎ가-힇 ,.?0-9]+','',i)
-    except:
-        return ''
-    
 if __name__=='__main__':
     args = parser.parse_args()
     F = open(args.data,'r',encoding='utf-8')
-    f = open(args.output_data,'w',encoding='utf-8')
-    n = 0
+    cnt = 0
     while True:
-        i = F.readline()
-        i = re.sub('[^ㄱ-ㅎ가-힇 ,.?0-9]+','',i)
-        if len(i)>32:
-            f.write(i+'\n')
-            n+=1
-        if n==args.sentence_count:
-            F.close()
+        doc = []
+        while True:
+            a = F.readline()
+            if a=='\n': # 문서의 구분
+                break
+            doc.append(re.sub('\n','',a).strip())
+        if doc:
+            cnt+=1
+            f = open(args.output_data+'_%d'%cnt,'wb')
+            pickle.dump(doc,f)
             f.close()
+        if cnt==args.document_count:
             break
+
         
