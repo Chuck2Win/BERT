@@ -2,8 +2,9 @@
 - RoBERTa에서는 NSP loss를 활용하지 않음(이 방식 채택)
 - Mask를 Dinamic masking 활용(그냥 `고정된 Masking` 활용할 예정임)
 
-## Pretrain - MLM + NSP (data는 NSMC로 pretrain시킴 + NSMC를 finetunning까지 할 예정)
-## NSMC 15만건 pretrain -> NSMC 15만건 finetunning까지(추후 나무위키 데이터로 진행예정.)
+## Pretrain - MLM + NSP (data는 Namuwiki data로 pretrain시키고 + NSMC를 finetunning까지 할 예정)
+- Namuwiki data는 namuwikiextrator로 추출  
+- 10만개의 문서만을 활용(약 600만개의 문장)  
 
 ### comment
 
@@ -85,18 +86,17 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | d_model        | 768                             | 128                                       |
 | d_ff           | 768*4                           | 512                                     |
 |                |                                 |                                           |
-| n_vocab        | 32000                           | 8000                                      |
+| n_vocab        | 32000                           | 16000                                      |
 | batch size     | 256                             | 32                                        |
-| seq_len        | 512                             | 128                                       |
-| epochs         | 40                              | 100                                       |
+| seq_len        | 512                             | 256                                       |
+| epochs         | 40                              | 20                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
-| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-5,warm up 40,00steps|
+| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-4,warm up 40,00steps|
 | **dropout**    | 0.1                             | 0.1                                       |
 | activation     | gelu                            | gelu                                      |
 
 ## Status  
 - 학습 중
-- learning rate issue 발생했었음.
 
 
 
