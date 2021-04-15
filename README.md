@@ -56,21 +56,22 @@ Model의 `[MASK]` 예측, Model이 어떤 부분이 random으로 바뀌었는 �
 
 ## NSP
 
-A :arrow_forward: B
+A -> B
 
 50% : IsNext , 50% : NotNext
 
+★ 이 부분을 직접 코드로 구현하는 것이 매우 어려웠음 - 현청천님의 블로그를 많이 참고했음  
+★ 이를 통해, Segment가 단일 sentence가 아닌 것도 확인했음  
+★ 직접 구현하는 것이 중요하다.  
 
 
 ## 구현 - 모델 구현 자체는 어렵지 않다.
 
-데이터 전처리+Embedding + Model 부분만 구현
+데이터 전처리 + Embedding + Model 부분만 구현
 
 (Word Piece는 huggingface 그것을 가져올 것)
 
-:heavy_plus_sign: nn.multiheadattention 등은 활용 안하고, 복습 차원에서 nn.Linear로 구현
-
-
+◎ nn.multiheadattention 등은 활용 안하고, 복습 차원에서 nn.Linear로 구현
 
 ![transformer](https://github.com/Chuck2Win/BERT/blob/main/img/transformer.png)
 
