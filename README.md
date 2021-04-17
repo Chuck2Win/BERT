@@ -82,22 +82,32 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 
 | Hyperparameter |             Original                    |           MINE                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
-| n_layers       | 12                              | 4                                         |
-| n_head         | 12                              | 4                                         |
-| d_model        | 768                             | 64                                       |
-| d_ff           | 768*4                           | 256                                     |
+| n_layers       | 12                              | **4**                                         |
+| n_head         | 12                              | **4**                                         |
+| d_model        | 768                             | **64**                                       |
+| d_ff           | 768*4                           | **256**                                     |
 |                |                                 |                                           |
-| n_vocab        | 32000                           | 16000                                      |
-| batch size     | 256                             | 32                                        |
-| seq_len        | 512                             | 256                                       |
-| epochs         | 40                              | 20                                       |
+| n_vocab        | 32000                           | **16000**                                      |
+| batch size     | 256                             | **32**                                        |
+| seq_len        | 512                             | **256**                                       |
+| epochs         | 40                              | **50**                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
-| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | 1e-4,warm up 10,000steps|
+| **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | **1e-3**,warm up 10,000steps|
 | **dropout**    | 0.1                             | 0.1                                       |
 | activation     | gelu                            | gelu                                      |
 
 ## Status  
-- 학습 중
+- pretrain 결과
+| score |             nsp                    |           mlm                                          |
+| -------------- | ------------------------------- | ----------------------------------------- |
+| loss       |                               |                                          |
+| acc         |                               |                                          |
+- finetunning 결과  
+| score |             acc                    |           loss                                          |
+| -------------- | ------------------------------- | ----------------------------------------- |
+| train       |                               |                                          |
+| test         |                               |                                          |
+
 
 
 
