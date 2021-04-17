@@ -97,12 +97,12 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | activation     | gelu                            | gelu                                      |
 
 ## Status  
-- pretrain 결과
+### pretrain 결과  
 | score |             nsp                    |           mlm                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
 | loss       |                               |                                          |
 | acc         |                               |                                          |
-- finetunning 결과  
+### finetunning 결과    
 | score |             acc                    |           loss                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
 | train       |                               |                                          |
