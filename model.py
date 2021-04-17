@@ -63,7 +63,9 @@ class multi_head_self_attention(nn.Module):
     def forward(self, input, mask = None):
         # input (bs, seq_len, d_model) -> (bs,seq_len,h,d_k)
         # 여기서 mask는 padding mask 용 - (bs, seq_len)
+        
         Q = self.linear_Q(input)
+        
         Q = Q.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous() # bs,h,seq_len,d_k
         K = self.linear_K(input) 
         K = K.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous()
@@ -71,8 +73,8 @@ class multi_head_self_attention(nn.Module):
         V = V.reshape(-1,self.args.seq_len,self.args.n_head,self.d_k).transpose(1,2).contiguous()
         
         next = torch.matmul(Q,K.transpose(2,3).contiguous())/math.sqrt(self.d_k)
-        if mask is not None:
-            mask = mask.unsqueeze(1).unsqueeze(-1).expand(next.size())
+        if mask is not None: # bs, seq len(K) -> bs, h, seq len(K) -> bs, h, seq_len(Q), seq_len(K)
+            mask = mask.unsqueeze(1).unsqueeze(2).expand(next.size())
             next = next.masked_fill(mask,-1e8)
         softmax = nn.Softmax(3).forward(next)
         output = torch.matmul(softmax,V) # bs, h, seq_len, d_k
@@ -199,13 +201,12 @@ class BERT_NSP(nn.Module):
 class BERT_pretrain(nn.Module):
     def __init__(self,args):
         super().__init__()
-        #self.tokenizer = BertTokenizer.from_pretrained(args.tokenizer_file,strip_accents=False,lowercase=False)
         self.bert = BERT(args)
         self.mlm = MLM(args)
-        #self.nsp = BERT_NSP(args)
+        self.nsp = BERT_NSP(args)
     def forward(self,input_ids,segment_ids):
         output = self.bert(input_ids,segment_ids)
         mlm_output=self.mlm(output)
-        #nsp_output=self.nsp(output)
-        return mlm_output#,nsp_output
+        nsp_output=self.nsp(output)
+        return mlm_output,nsp_output
 

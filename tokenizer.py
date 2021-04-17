@@ -30,5 +30,4 @@ if __name__=="__main__":
      if not os.path.isdir(args.tokenizer_model):
          os.mkdir(args.tokenizer_model)
      tokenizer.save_model(args.tokenizer_model)
-      
 

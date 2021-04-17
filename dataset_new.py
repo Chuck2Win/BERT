@@ -17,22 +17,22 @@
 import argparse
 from transformers import BertTokenizer
 import random
-import torch
 import pickle
-from tqdm import tqdm
 import json
+from tqdm import tqdm
 parser = argparse.ArgumentParser() 
 
 parser.add_argument("--docs", type=str, default = './data/namuwiki/namuwiki_document') 
 parser.add_argument("--tokenizer_file", type=str, default='./tokenizer_model') 
-parser.add_argument("--length", type=int, default= 100000)
-parser.add_argument("--seq_len", type=int, default= 256) 
-parser.add_argument("--output_file", type=str, default = './data/namuwiki_pretrain/') # {A_ids,A_labels,B_ids,B_labels,is_nest}
+parser.add_argument("--length", type=int, default= 20000)
+parser.add_argument("--seq_len", type=int, default= 128) 
+parser.add_argument("--output_file", type=str, default = './data/namuwiki_pretrain/') 
+
 
 # Mask + NSP
       
 # Mask + NSP
-      
+
 class pretrain_instances(object):
     def __init__(self,args):
         self.args = args
@@ -50,7 +50,10 @@ class pretrain_instances(object):
                 if s<=0.8: # [MASK]
                     new_sentence.append(self.tokenizer.mask_token_id)
                 elif s<0.9: # random
-                    new_sentence.append(random.randint(0,self.tokenizer.vocab_size-1))
+                    x = self.tokenizer.pad_token_id
+                    while x == self.tokenizer.pad_token_id: 
+                        x = random.randrange(self.tokenizer.vocab_size)
+                    new_sentence.append(x)
                 else:
                     new_sentence.append(i)
                 label.append(i)
@@ -157,7 +160,7 @@ class pretrain_instances(object):
 
         # trunc : a는 앞에서부터, b는 뒤에서 부터
         # mask  
-        # 그리고 a에는 cls token, sep token, b에는 sep token 
+        # a에는 cls token, sep token, b에는 sep token 
         # pad 
         segment_a, segment_b = self.trunc(segment_a,segment_b)
         masked_segment_a, masked_label_a = self.mask(segment_a)
@@ -166,16 +169,24 @@ class pretrain_instances(object):
         masked_label_a = [self.tokenizer.pad_token_id]+masked_label_a+[self.tokenizer.pad_token_id]
         masked_segment_b = masked_segment_b+[self.tokenizer.cls_token_id]
         masked_label_b = masked_label_b+[self.tokenizer.pad_token_id]
+        
+        input_ids = masked_segment_a+masked_segment_b
+        segment_ids = [1]*len(masked_segment_a)+[2]*len(masked_segment_b)
+        labels = masked_label_a+masked_label_b
+        if len(input_ids)<self.args.seq_len:
+            input_ids += ([self.tokenizer.pad_token_id]*(self.args.seq_len-len(input_ids)))
+            segment_ids += ([0]*(self.args.seq_len-len(segment_ids)))    
+            labels += ([self.tokenizer.pad_token_id]*(self.args.seq_len-len(labels)))
         instance = {
-            'input_ids':masked_segment_a+masked_segment_b,
-            'segment_ids':[1]*len(masked_segment_a)+[2]*len(masked_segment_b),
-            'labels': masked_label_a+masked_label_b,
-            'is_next':is_next
+            'input_ids': input_ids,
+            'segment_ids': segment_ids,
+            'labels': labels,
+            'is_next': is_next
         }           
         return instance
     def make_docs(self):
         # json으로 저장
-        for i in range(self.args.length):
+        for i in tqdm(range(self.args.length),desc='docs'):
             #print(i) # ★
             instance = self.make(i)
             with open(args.output_file+'%d.json'%i,'w') as f:
@@ -185,6 +196,8 @@ class pretrain_instances(object):
     
 if __name__ == '__main__': # 12,960,561 - 총 문장 개수
     args = parser.parse_args()
+    
     d = pretrain_instances(args)
     d.make_docs()
-    
+
+
