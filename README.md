@@ -4,7 +4,7 @@
 
 ## Pretrain - MLM + NSP (data는 Namuwiki data로 pretrain시키고 + NSMC를 finetunning까지 할 예정)
 - Namuwiki data는 namuwikiextrator로 추출  
-- 2만개의 문서만을 활용(약 110만개의 문장)  
+- 5만개의 문서만을 활용(약 500만개의 문장)  
 
 ### comment
 
