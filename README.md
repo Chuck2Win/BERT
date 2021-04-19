@@ -112,11 +112,13 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 
 ![3](https://github.com/Chuck2Win/BERT/blob/main/img/nsp_loss.png)      
 
-### finetunning 결과    
+### finetunning 결과  
+NSMC epoch 5만 fine tunning 함 - 30분 
+
 | score |             acc                    |           loss                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
-| train       |                               |                                          |
-| test         |                               |                                          |
+| train       |   82.0                            |            0.40                              |
+| test         |  82.6                             |       0.39                                   |
 
 
 
