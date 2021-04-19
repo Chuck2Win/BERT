@@ -101,7 +101,14 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | score |             nsp                    |           mlm                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
 | loss       |  3.583                             | 0.003                                         |
-| acc         | 0.38                              | 0.97                                    |
+| acc         | 0.38                              | 0.97                                    |  
+
+![1](https://github.com/Chuck2Win/BERT/blob/main/img/bert_train.png)        
+
+![2](https://github.com/Chuck2Win/BERT/blob/main/img/mlm total loss.png)        
+
+![3](https://github.com/Chuck2Win/BERT/blob/main/img/nsp_loss.png)      
+
 ### finetunning 결과    
 | score |             acc                    |           loss                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
