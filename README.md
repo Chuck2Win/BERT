@@ -90,7 +90,7 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | n_vocab        | 32000                           | **16000**                                      |
 | batch size     | 256                             | **32**                                        |
 | seq_len        | 512                             | **256**                                       |
-| epochs         | 40                              | **50**                                       |
+| epochs         | 40                              | **100**                                       |
 | Adam           | b1 0.9, b2=0.999, L2 decay 0.01 | b1 0.9, b2=0.999, L2 decay 0.01           |
 | **lr**         | 1e-4, warm up 10,000 step, Linear Decay                           | **1e-3**,warm up 10,000steps|
 | **dropout**    | 0.1                             | 0.1                                       |
@@ -100,8 +100,8 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 ### pretrain 결과  
 | score |             nsp                    |           mlm                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
-| loss       |                               |                                          |
-| acc         |                               |                                          |
+| loss       |  3.583                             | 0.003                                         |
+| acc         | 0.38                              | 0.97                                    |
 ### finetunning 결과    
 | score |             acc                    |           loss                                          |
 | -------------- | ------------------------------- | ----------------------------------------- |
