@@ -103,9 +103,9 @@ input으로는, input ids(token)+segment_ids(segment)+masks(mask면 0, 아니면
 | loss       |  3.583                             | 0.003                                         |
 | acc         | 0.38                              | 0.97                                    |  
 
-![1](https://github.com/Chuck2Win/BERT/blob/main/img/bert_train.png)        
+![1](https://github.com/Chuck2Win/BERT/blob/main/img/bert%20train.png)        
 
-![2](https://github.com/Chuck2Win/BERT/blob/main/img/mlm total loss.png)        
+![2](https://github.com/Chuck2Win/BERT/blob/main/img/mlm%20total%20loss.png)        
 
 ![3](https://github.com/Chuck2Win/BERT/blob/main/img/nsp_loss.png)      
 
