@@ -1,0 +1,1 @@
+{"n_layers": 4, "n_head": 4, "d_model": 64, "d_ff": 256, "n_vocab": 16000, "max_len": 9999, "padding_idx": 0, "device": "cuda", "dropout": 0.1, "seq_len": 128}
