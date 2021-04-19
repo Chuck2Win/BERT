@@ -1,3 +1,6 @@
+# 파일에 대한 설명
+- 파일 설명.md 참조할 것  
+
 # BERT & RoBERTa
 - RoBERTa에서는 NSP loss를 활용하지 않음(이 방식 채택)
 - Mask를 Dinamic masking 활용(그냥 `고정된 Masking` 활용할 예정임)
