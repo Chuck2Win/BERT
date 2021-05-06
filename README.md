@@ -5,7 +5,7 @@
 - RoBERTa에서는 NSP loss를 활용하지 않음(이 방식 채택)
 - Mask를 Dinamic masking 활용(그냥 `고정된 Masking` 활용할 예정임)
 
-## Pretrain - MLM + NSP (data는 Namuwiki data로 pretrain시키고 + NSMC를 finetunning까지 할 예정)
+## Pretrain - MLM + NSP (data는 Namuwiki data로 pretrain시키고 + NSMC를 finetunning까지 함)
 - Namuwiki data는 namuwikiextrator로 추출  
 - 5만개의 문서만을 활용(약 500만개의 문장)  
 
